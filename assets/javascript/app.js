@@ -16,34 +16,8 @@ $(document).ready(function () {
     var destination = "";
     var firstTrain = "";
     var frequency = 0;
-    var minutesAway = 0;
+    var trainDifference = 0;
     var trainArrival = 0;
-
-    database.ref().on("child_added", function (snapshot) {
-        var snap = snapshot.val();
-        console.log(snap);
-        var firstTrainToday = moment(firstTrain, "HH:mm").subtract(1, "weeks");
-        console.log(firstTrainToday)
-        var trainTimeDifference = moment().diff(moment(firstTrainToday), "minutes")
-        console.log(trainTimeDifference)
-        var trainDifference = trainTimeDifference % frequency;
-        console.log(trainDifference)
-        minutesAway = frequency - trainDifference;
-        console.log(minutesAway)
-        var nextTrain = moment().add(minutesAway, "mins");
-        console.log(nextTrain)
-        trainArrival = moment(nextTrain).format("HH:mm");
-        console.log(trainArrival)
-
-        $("#trainSchedule").find('tbody')
-            .append($('<tr>')
-                .append($('<td>').text(snap.name))
-                .append($('<td>').text(snap.destination))
-                .append($('<td>').text(snap.frequency))
-                .append($('<td>').text(snap.trainArrival))
-                .append($('<td>').text(snap.minutesAway))
-            )
-    });
    
     $("#addTrain").on("click", function () {
         event.preventDefault();
@@ -62,10 +36,32 @@ $(document).ready(function () {
             destination: destination,
             firstTrain: firstTrain,
             frequency: frequency,
-            minutesAway: minutesAway,
-            trainArrival: trainArrival,
+            // minutesAway: minutesAway,
+            // trainArrival: trainArrival,
             dateAdded: firebase.database.ServerValue.TIMESTAMP
         });
     });
-   
+    database.ref().on("child_added", function (snapshot) {
+        var snap = snapshot.val();
+        console.log(snap);
+        var firstTrainToday = moment(firstTrain, "HH:mm").subtract(1, "weeks");
+        console.log(firstTrainToday)
+        var trainTimeDifference = moment().diff(moment(firstTrainToday), "minutes")
+        console.log(trainTimeDifference)
+        trainDifference = trainTimeDifference % frequency;
+        console.log(trainDifference)
+        var nextTrain = moment().add(trainDifference, "m");
+        console.log(nextTrain)
+        trainArrival = moment(nextTrain).format("HH:mm");
+        console.log(trainArrival)
+
+        $("#trainSchedule").find('tbody')
+            .append($('<tr>')
+                .append($('<td>').text(snap.name))
+                .append($('<td>').text(snap.destination))
+                .append($('<td>').text(snap.frequency))
+                .append($('<td>').text(trainArrival))
+                .append($('<td>').text(trainDifference))
+            )
+    });
 });
